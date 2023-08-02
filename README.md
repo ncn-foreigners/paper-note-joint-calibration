@@ -8,12 +8,14 @@ Install `jointCalib` package
 ``` r
 install.packages("remotes")
 remotes::install_github("ncn-foreigners/jointCalib")
+remotes::install_github("ncn-foreigners/nonprobsvy") ## for IPW with calibration constraints
 ```
 
 Then, restart R and load the package
 
 ``` r
 library(jointCalib)
+library(nonprobsvy)
 ```
 
 ## Notebooks
@@ -29,10 +31,10 @@ library(jointCalib)
 
 ## Structure of the repo
 
-- `codes/` –
-- `figs/`
-- `notebooks/`
-- `results/`
+- `codes/` – code for simulation
+- `figs/` – figures that correspondst to table in the paper
+- `notebooks/` – notebooks with processing results
+- `results/` – files with tables based on simulation
 
 ## Funding
 

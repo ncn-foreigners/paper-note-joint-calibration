@@ -29,10 +29,10 @@ library(nonprobsvy)
 
 ## Structure of the repo
 
-+ `codes/` -- 
-+ `figs/`
-+ `notebooks/`
-+ `results/`
++ `codes/` -- code for simulation
++ `figs/` -- figures that correspondst to table in the paper
++ `notebooks/` -- notebooks with processing results
++ `results/` -- files with tables based on simulation
 
 ## Funding
 
