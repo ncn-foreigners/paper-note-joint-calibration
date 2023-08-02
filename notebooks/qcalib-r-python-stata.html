@@ -3013,7 +3013,7 @@ vertical-align: -.125em;
 <p>Add new variable to the dataset <code>apiclus1</code>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>apiclus1<span class="sc">$</span>api99_med <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">nrow</span>(apiclus1)) <span class="do">## create vector with 0</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>apiclus1<span class="sc">$</span>api99_med[apiclus1<span class="sc">$</span>api99 <span class="sc">&lt;</span> Q_L] <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span>N </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>apiclus1<span class="sc">$</span>api99_med[apiclus1<span class="sc">$</span>api99 <span class="sc">&lt;=</span> Q_L] <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span>N </span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>apiclus1<span class="sc">$</span>api99_med[apiclus1<span class="sc">$</span>api99 <span class="sc">==</span> Q_U] <span class="ot">&lt;-</span> Q_B<span class="sc">/</span>N</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(apiclus1[, <span class="fu">c</span>(<span class="st">&quot;api99&quot;</span>, <span class="st">&quot;api99_med&quot;</span>)])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
@@ -3040,7 +3040,7 @@ vertical-align: -.125em;
 </tr>
 <tr class="even">
 <td style="text-align: right;">669</td>
-<td style="text-align: right;">0.0000000</td>
+<td style="text-align: right;">0.0001614</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">660</td>
@@ -3075,7 +3075,7 @@ vertical-align: -.125em;
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">after =</span> <span class="fu">svyquantile</span>(<span class="sc">~</span>api99, dclus1g3, <span class="at">quantile =</span> <span class="fl">0.5</span>)<span class="sc">$</span>api99[<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>before  after 
-   615    669 </code></pre>
+   615    673 </code></pre>
 </div>
 </div>
 <p>Check <code>api99_med</code> variable if it sums up to 0.5</p>
@@ -3083,7 +3083,7 @@ vertical-align: -.125em;
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="at">before =</span> <span class="fu">svytotal</span>(<span class="sc">~</span>api99_med, dclus1), <span class="at">after =</span> <span class="fu">svytotal</span>(<span class="sc">~</span>api99_med, dclus1g3))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>before.api99_med  after.api99_med 
-       0.6734973        0.5000000 </code></pre>
+       0.6953552        0.5000000 </code></pre>
 </div>
 </div>
 <p>Note that in small sample sizes quantiles may not be reproduced excatly due to rounding</p>
@@ -3132,7 +3132,7 @@ vertical-align: -.125em;
 <span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>Q_U <span class="op">=</span> api99_sorted[n_pos <span class="op">+</span> <span class="dv">1</span>]</span>
 <span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>Q_B <span class="op">=</span> (api99_med_pop <span class="op">-</span> Q_L) <span class="op">/</span> (Q_U <span class="op">-</span> Q_L)</span>
 <span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>apiclus1[<span class="st">&#39;api99_med&#39;</span>] <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>apiclus1.loc[apiclus1[<span class="st">&#39;api99&#39;</span>] <span class="op">&lt;</span> Q_L, <span class="st">&#39;api99_med&#39;</span>] <span class="op">=</span> <span class="dv">1</span><span class="op">/</span>N </span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>apiclus1.loc[apiclus1[<span class="st">&#39;api99&#39;</span>] <span class="op">&lt;=</span> Q_L, <span class="st">&#39;api99_med&#39;</span>] <span class="op">=</span> <span class="dv">1</span><span class="op">/</span>N </span>
 <span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>apiclus1.loc[apiclus1[<span class="st">&#39;api99&#39;</span>] <span class="op">==</span> Q_U, <span class="st">&#39;api99_med&#39;</span>] <span class="op">=</span> Q_B<span class="op">/</span>N</span>
 <span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>apiclus1[[<span class="st">&quot;api99&quot;</span>, <span class="st">&quot;api99_med&quot;</span>]].head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -3176,55 +3176,92 @@ vertical-align: -.125em;
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>{<span class="st">&quot;Before&quot;</span>: wq1.<span class="bu">sum</span>, <span class="st">&quot;After&quot;</span>: wq2.<span class="bu">sum</span>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>{&#39;Before&#39;: 0.6885246262074605, &#39;After&#39;: 0.5000000000000002}</code></pre>
+<pre><code>{&#39;Before&#39;: 0.6939891073678371, &#39;After&#39;: 0.49999999999999983}</code></pre>
 </div>
 </div>
 </section>
 <section id="calibraion-for-quantiles-in-stata-using-svyset-regress" class="level1" data-number="3">
 <h1 data-number="3"><span class="header-section-number">3</span> Calibraion for quantiles in Stata using <code>svyset</code> (<code>regress</code>)</h1>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode stata code-with-copy"><code class="sourceCode stata"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>import delimited <span class="kw">using</span> <span class="st">&quot;your_file.csv&quot;</span>, <span class="kw">clear</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="kw">set</span> <span class="kw">more</span> <span class="kw">off</span></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>* Define the constants</span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="kw">global</span> <span class="kw">N</span> = 6194</span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="kw">global</span> api99_med_pop = 650</span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>* Create a copy <span class="kw">of</span> api99 <span class="kw">as</span> a temporary <span class="kw">variable</span></span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a><span class="kw">gen</span> api99_copy = api99</span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>* Sort the temporary <span class="kw">variable</span></span>
-<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a><span class="kw">sort</span> api99_copy</span>
-<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>* Define <span class="kw">new</span> <span class="kw">variable</span> pos to <span class="kw">store</span> the <span class="kw">values</span> that are <span class="fu">lower</span> <span class="kw">or</span> equal to api99_med_pop</span>
-<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a><span class="kw">gen</span> pos = (api99_copy &lt;= <span class="ot">$api99_med_pop</span>)</span>
-<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>* Count the number <span class="kw">of</span> cases where pos is true</span>
-<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a><span class="kw">egen</span> n_pos = <span class="kw">total</span>(pos)</span>
-<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>* Define Q_L and Q_U based <span class="kw">on</span> n_pos</span>
-<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a><span class="kw">gen</span> Q_L = api99_copy <span class="kw">if</span> <span class="dt">_n</span> == n_pos</span>
-<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a><span class="kw">gen</span> Q_U = api99_copy <span class="kw">if</span> <span class="dt">_n</span> == n_pos + 1</span>
-<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a>* Replace <span class="fu">missing</span> Q_L and Q_U with respective preceding and following <span class="kw">values</span> </span>
-<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a><span class="kw">replace</span> Q_L = Q_L[<span class="dt">_n</span>-1] <span class="kw">if</span> <span class="dt">_n</span> &gt; 1 &amp; <span class="fu">missing</span>(Q_L)</span>
-<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a><span class="kw">replace</span> Q_U = Q_U[<span class="dt">_n</span>+1] <span class="kw">if</span> <span class="dt">_n</span> &lt; _N &amp; <span class="fu">missing</span>(Q_U)</span>
-<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a>* Interpolation B</span>
-<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a><span class="kw">gen</span> Q_B = (<span class="ot">$api99_med_pop</span> - Q_L) / (Q_U - Q_L)</span>
-<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-31"><a href="#cb25-31" aria-hidden="true" tabindex="-1"></a>* Create a <span class="kw">new</span> <span class="kw">variable</span> api99_med with 0</span>
-<span id="cb25-32"><a href="#cb25-32" aria-hidden="true" tabindex="-1"></a><span class="kw">gen</span> api99_med = 0</span>
-<span id="cb25-33"><a href="#cb25-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-34"><a href="#cb25-34" aria-hidden="true" tabindex="-1"></a>* Update api99_med according to conditions</span>
-<span id="cb25-35"><a href="#cb25-35" aria-hidden="true" tabindex="-1"></a><span class="kw">replace</span> api99_med = 1/<span class="ot">$N</span> <span class="kw">if</span> api99 &lt; Q_L</span>
-<span id="cb25-36"><a href="#cb25-36" aria-hidden="true" tabindex="-1"></a><span class="kw">replace</span> api99_med = Q_B/<span class="ot">$N</span> <span class="kw">if</span> api99 == Q_U</span>
-<span id="cb25-37"><a href="#cb25-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-38"><a href="#cb25-38" aria-hidden="true" tabindex="-1"></a>* Drop the temporary variables</span>
-<span id="cb25-39"><a href="#cb25-39" aria-hidden="true" tabindex="-1"></a><span class="kw">drop</span> api99_copy Q_L Q_U pos n_pos Q_B</span>
-<span id="cb25-40"><a href="#cb25-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-41"><a href="#cb25-41" aria-hidden="true" tabindex="-1"></a>* Show the first few <span class="bn">rows</span></span>
-<span id="cb25-42"><a href="#cb25-42" aria-hidden="true" tabindex="-1"></a><span class="ot">list</span> <span class="kw">in</span> 1/5</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-collectcode="true">
+<div class="cell-output cell-output-stdout">
+<pre><code>. import delimited using &quot;apiclus1-example.csv&quot;, clear
+(encoding automatically selected: ISO-8859-1)
+(39 vars, 183 obs)
+
+. global N = 6194
+
+. global api99_med_pop = 670
+
+. gen api99_copy = api99
+
+. sort api99_copy
+
+. gen pos = (api99_copy &lt;= $api99_med_pop)
+
+. egen n_pos = total(pos)
+
+. gen Q_L = api99_copy if _n == n_pos
+(182 missing values generated)
+
+. gen Q_U = api99_copy if _n == n_pos + 1
+(182 missing values generated)
+
+. replace Q_L = Q_L[_n-1] if _n &gt; 1 &amp; missing(Q_L)
+(56 real changes made)
+
+. replace Q_U = Q_U[_n+1] if _n &lt; _N &amp; missing(Q_U)
+(1 real change made)
+
+. gen Q_B = ($api99_med_pop - Q_L) / (Q_U - Q_L)
+(181 missing values generated)
+
+. gen api99_med = 0
+
+. replace api99_med = 1/$N if api99 &lt;= Q_L
+(127 real changes made)
+
+. replace api99_med = Q_B/$N if api99 == Q_U
+(1 real change made)
+
+. drop api99_copy Q_L Q_U pos n_pos Q_B
+
+. gen stypeH = 0
+
+. replace stypeH = 1 if stype == &quot;H&quot;
+(14 real changes made)
+
+. gen stypeM = 0
+
+. replace stypeM = 1 if stype == &quot;H&quot;
+(14 real changes made)
+
+. svyset dnum [pweight=pw], regress(stypeH stypeM api99 api99_med, totals(_cons=$N stypeH=755 stypeM=1018 api99=3914069 api99_med=0.50)
+&gt; )
+
+Sampling weights: pw
+             VCE: linearized
+     Calibration: regress
+     Single unit: missing
+        Strata 1: &lt;one&gt;
+ Sampling unit 1: dnum
+           FPC 1: &lt;zero&gt;
+
+. svy: total api99_med
+(running total on estimation sample)
+
+Survey: Total estimation
+
+Number of strata =  1                  Number of obs   =   183
+Number of PSUs   = 15                  Population size = 6,194
+Calibration: regress                   Design df       =    14
+
+--------------------------------------------------------------
+             |             Linearized
+             |      Total   std. err.     [95% conf. interval]
+-------------+------------------------------------------------
+   api99_med |         .5   4.83e-18            .5          .5
+--------------------------------------------------------------</code></pre>
+</div>
 </div>
 </section>
 
