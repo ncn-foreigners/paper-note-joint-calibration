@@ -1,1 +1,6 @@
-# paper-note-joint-calibration
+
+# Repo for the paper
+
+## Preliminaries
+
+Install `jointCalib` package

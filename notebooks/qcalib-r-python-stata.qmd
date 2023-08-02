@@ -45,7 +45,7 @@ Say we calibrate to the following quantities
 + api99=3914069
 + api99_med = 650 (this is set arbitrary)
 
-So we need to create new variabl `api99_med` 
+So we need to create new variable `api99_med` 
 
 ```{r}
 N <- 6194
