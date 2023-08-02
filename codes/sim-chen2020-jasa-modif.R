@@ -1,14 +1,12 @@
+library(jointCalib)
 library(sampling)
 library(laeken)
 library(survey)
 library(data.table)
 library(ggplot2)
 library(scales)
-library(Rcpp)
 library(nonprobsvy)
 library(xtable)
-source("codes/functions.R") ## to be replaced by package
-
 
 seed_for_sim <- 2023-07-14
 set.seed(seed_for_sim+1)
@@ -53,6 +51,7 @@ p_quantiles <- seq(0.25, 0.75, 0.25) ## for estimation
 x2_q <- with(pop_data, quantile(x2, p_quantiles))
 x3_q <- with(pop_data, quantile(x3, p_quantiles))
 x4_q <- with(pop_data, quantile(x4, p_quantiles))
+x_quants <- list(x2=x2_q,x3=x3_q, x4=x4_q)
 
 # known population y ------------------------------------------------------
 
@@ -78,35 +77,36 @@ for (r in 1:n_reps) {
   sample_resp[, w_naive:= N/.N]
   
   ## IPW
-  ipw1 <- nonprob(selection = ~ x1 + x2 + x3 + x4,
-                    target = ~ y1,
-                    data = sample_resp,
-                    pop_totals = x_totals, 
-                    control_selection = controlSel(est_method_sel = "gee", h_x = "1"))
-  
-  ipw2 <- nonprob(selection = ~ x1 + x2 + x3 + x4,
-                    target = ~ y1,
-                    data = sample_resp,
-                    pop_totals = x_totals, 
-                    control_selection = controlSel(est_method_sel = "gee", h_x = "2"))
+  ipw <- nonprob(selection = ~ x1 + x2 + x3 + x4,
+                 target = ~ y1,
+                 data = sample_resp,
+                 pop_totals = x_totals,
+                 control_selection = controlSel(est_method_sel = "gee", h_x = "2"))
   
   ## calibration with quantiles only
-  w_res <- calib_quantiles(X_q = with(sample_resp, cbind(x2, x3, x4)),  
-                           d = sample_resp$w_naive,  
-                           N=N,  
-                           totals_q = list(x2_q, x3_q, x4_q), 
-                           method = "raking",
-                           backend = "sampling")
+  w_res <- joint_calib(formula_quantiles = ~ x2 + x3 + x4,   
+                       data = sample_resp,
+                       dweights = sample_resp$w_naive,
+                       N = N, 
+                       pop_quantiles = x_quants,
+                       method = "raking",
+                       backend = "sampling", 
+                       control = list(interpolation = "linear") # linear
+                       )$g
+  
   
   ## calibration with quantiles and totals
-  w_res2 <- calib_quantiles(X_q = with(sample_resp, cbind(x2, x3, x4)),
-                            X =  with(sample_resp, cbind(x1, x2, x3, x4)),
-                            d = sample_resp$w_naive,
-                            N=N,
-                            totals = x_totals[-1],
-                            totals_q = list(x2_q, x3_q, x4_q), 
-                            method = "raking",
-                            backend = "sampling")
+  w_res2 <- joint_calib(formula_quantiles = ~ x2 + x3 + x4,  
+                        formula_totals = ~ x1 + x2 + x3 + x4,
+                        data = sample_resp,
+                        dweights = sample_resp$w_naive,
+                        N = N, 
+                        pop_quantiles = x_quants,
+                        pop_totals = x_totals[-1],
+                        method = "raking",
+                        backend = "sampling",
+                        control = list(interpolation = "linear") # linear
+                        )$g
   
   ## calibration with totals only
   w_res_st <- calib(Xs = with(sample_resp, cbind(1, x1, x2, x3, x4)), 
@@ -115,40 +115,37 @@ for (r in 1:n_reps) {
                     method = "raking")
   
   ## weights
-  sample_resp[, ":="(wcal0=w_naive*w_res_st, qcal1=w_res$w, qcal2=w_res2$w, wipw1=ipw1$weights,wipw2=ipw2$weights)]
+  sample_resp[, ":="(wcal0=w_naive*w_res_st, qcal1=w_naive*w_res, qcal2=w_naive*w_res2, wipw=ipw$weights)]
   ## means
   results_mean_n <- sample_resp[, lapply(.SD, mean), .SDcols = patterns("y")][, w:="naive"][, stat:="mean"]
   results_mean_wcal0 <- sample_resp[, lapply(.SD, weighted.mean, w = wcal0), .SDcols = patterns("y")][, w:="wcal0"][, stat:="mean"]
   results_mean_qcal1 <- sample_resp[, lapply(.SD, weighted.mean, w = qcal1), .SDcols = patterns("y")][, w:="qcal1"][, stat:="mean"]
   results_mean_qcal2 <- sample_resp[, lapply(.SD, weighted.mean, w = qcal2), .SDcols = patterns("y")][, w:="qcal2"][, stat:="mean"]
-  results_mean_ipw1 <- sample_resp[, lapply(.SD, weighted.mean, w = wipw1), .SDcols = patterns("y")][, w:="wipw1"][, stat:="mean"]
-  results_mean_ipw2 <- sample_resp[, lapply(.SD, weighted.mean, w = wipw2), .SDcols = patterns("y")][, w:="wipw2"][, stat:="mean"]
+  results_mean_ipw <- sample_resp[, lapply(.SD, weighted.mean, w = wipw), .SDcols = patterns("y")][, w:="wipw"][, stat:="mean"]
   ## q25
   results_q25_n <- sample_resp[, lapply(.SD, quantile, probs=0.25), .SDcols = patterns("y")][, w:="naive"][, stat:="q25"]
   results_q25_wcal0 <- sample_resp[, lapply(.SD, weightedQuantile, probs=0.25, w = wcal0), .SDcols = patterns("y")][, w:="wcal0"][, stat:="q25"]
   results_q25_qcal1 <- sample_resp[, lapply(.SD, weightedQuantile, probs=0.25, w = qcal1), .SDcols = patterns("y")][, w:="qcal1"][, stat:="q25"]
   results_q25_qcal2 <- sample_resp[, lapply(.SD, weightedQuantile, probs=0.25, w = qcal2), .SDcols = patterns("y")][, w:="qcal2"][, stat:="q25"]
-  results_q25_ipw1 <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.25, w = wipw1), .SDcols = patterns("y")][, w:="wipw1"][, stat:="q25"]
-  results_q25_ipw2 <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.25, w = wipw2), .SDcols = patterns("y")][, w:="wipw2"][, stat:="q25"]
+  results_q25_ipw <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.25, w = wipw), .SDcols = patterns("y")][, w:="wipw"][, stat:="q25"]
+
   ## q50
   results_q50_n <- sample_resp[, lapply(.SD, quantile, probs=0.50), .SDcols = patterns("y")][, w:="naive"][, stat:="q50"]
   results_q50_wcal0 <- sample_resp[, lapply(.SD, weightedQuantile, probs=0.5, w = wcal0), .SDcols = patterns("y")][, w:="wcal0"][, stat:="q50"]
   results_q50_qcal1 <- sample_resp[, lapply(.SD, weightedQuantile, probs=0.5, w = qcal1), .SDcols = patterns("y")][, w:="qcal1"][, stat:="q50"]
   results_q50_qcal2 <- sample_resp[, lapply(.SD, weightedQuantile, probs=0.5, w = qcal2), .SDcols = patterns("y")][, w:="qcal2"][, stat:="q50"]
-  results_q50_ipw1 <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.5, w = wipw1), .SDcols = patterns("y")][, w:="wipw1"][, stat:="q50"]
-  results_q50_ipw2 <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.5, w = wipw2), .SDcols = patterns("y")][, w:="wipw2"][, stat:="q50"]
+  results_q50_ipw <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.5, w = wipw), .SDcols = patterns("y")][, w:="wipw"][, stat:="q50"]
   ## q75
   results_q75_n <- sample_resp[, lapply(.SD, quantile, probs=0.75), .SDcols = patterns("y")][, w:="naive"][, stat:="q75"]
   results_q75_wcal0 <- sample_resp[, lapply(.SD, weightedQuantile, probs=0.75, w = wcal0), .SDcols = patterns("y")][, w:="wcal0"][, stat:="q75"]
   results_q75_qcal1 <- sample_resp[, lapply(.SD, weightedQuantile, probs=0.75, w = qcal1), .SDcols = patterns("y")][, w:="qcal1"][, stat:="q75"]
   results_q75_qcal2 <- sample_resp[, lapply(.SD, weightedQuantile, probs=0.75, w = qcal2), .SDcols = patterns("y")][, w:="qcal2"][, stat:="q75"]
-  results_q75_ipw1 <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.75, w = wipw1), .SDcols = patterns("y")][, w:="wipw1"][, stat:="q75"]
-  results_q75_ipw2 <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.75, w = wipw2), .SDcols = patterns("y")][, w:="wipw2"][, stat:="q75"]
+  results_q75_ipw <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.75, w = wipw), .SDcols = patterns("y")][, w:="wipw"][, stat:="q75"]
   
-  results[[r]] <- rbind(results_mean_n, results_mean_wcal0, results_mean_qcal1, results_mean_qcal2, results_mean_ipw1, results_mean_ipw2,
-                        results_q25_n, results_q25_wcal0, results_q25_qcal1, results_q25_qcal2, results_q25_ipw1, results_q25_ipw2,
-                        results_q50_n, results_q50_wcal0, results_q50_qcal1, results_q50_qcal2, results_q50_ipw1, results_q50_ipw2,
-                        results_q75_n, results_q75_wcal0, results_q75_qcal1, results_q75_qcal2, results_q75_ipw1, results_q75_ipw2)
+  results[[r]] <- rbind(results_mean_n, results_mean_wcal0, results_mean_qcal1, results_mean_qcal2, results_mean_ipw, 
+                        results_q25_n, results_q25_wcal0, results_q25_qcal1, results_q25_qcal2, results_q25_ipw,
+                        results_q50_n, results_q50_wcal0, results_q50_qcal1, results_q50_qcal2, results_q50_ipw,
+                        results_q75_n, results_q75_wcal0, results_q75_qcal1, results_q75_qcal2, results_q75_ipw)
 }
 
 
@@ -158,8 +155,8 @@ results_df <- rbindlist(results, idcol = "r") |>
 
 results_df[pop_true_vals, on = c("y", "stat"), true:=i.true]
 results_df[, w:=factor(w, 
-                       c("naive", "wipw1", "wipw2", "wcal0", "qcal1", "qcal2"), 
-                       c("Naive", "IPW1", "IPW2", "CAL", "QCAL1", "QCAL2"))]
+                       c("naive", "wipw", "wcal0", "qcal1", "qcal2"), 
+                       c("Naive", "IPW", "CAL", "QCAL1", "QCAL2"))]
 
 saveRDS(results_df, file = "results/sim-chen2020-jasa-modif.rds")
 fwrite(x = results_df, file = "results/sim-chen2020-jasa-modif.csv.gz")

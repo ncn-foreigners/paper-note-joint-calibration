@@ -24,20 +24,25 @@ library(Statamarkdown)
 ```
 
 
+
 # Calibration for quantiles in R 
 
 Minimal example using base R and `survey` package.
+
 
 ```{r}
 library(survey)
 ```
 
+
 Read the data (this is a csv file created based on `apiclus1` from `data(api)`).
+
 
 ```{r}
 apiclus1 <- read.csv("apiclus1-example.csv")
 head(apiclus1)
 ```
+
 
 Say we calibrate to the following quantities
 
@@ -48,6 +53,7 @@ Say we calibrate to the following quantities
 + api99_med = 650 (this is set arbitrary)
 
 So we need to create new variable `api99_med` 
+
 
 ```{r}
 N <- 6194
@@ -60,7 +66,9 @@ Q_U <- api99_sorted[n_pos + 1] ## select upper
 Q_B <- (api99_med_pop - Q_L) / (Q_U - Q_L) ## interpolation B
 ```
 
+
 Add new variable to the dataset `apiclus1`.
+
 
 ```{r}
 apiclus1$api99_med <- numeric(nrow(apiclus1)) ## create vector with 0
@@ -69,31 +77,40 @@ apiclus1$api99_med[apiclus1$api99 == Q_U] <- Q_B/N
 head(apiclus1[, c("api99", "api99_med")])
 ```
 
+
 Calibration using `survey::calibrate`.
+
 
 ```{r}
 pop.totals<-c(`(Intercept)`=N, stypeH=755, stypeM=1018, api99=3914069, api99_med=0.50) ## vector of totals
 pop.totals
 ```
 
+
 Declare design and calibrate
+
 ```{r}
 dclus1<-svydesign(id=~dnum, weights=~pw, data=apiclus1, fpc=~fpc) ## definition of design
 dclus1g3 <- calibrate(dclus1,  formula = ~stype+api99+api99_med,  population = pop.totals) ## calibration
 ```
 
+
 Compare results
+
 
 ```{r}
 c(before = svyquantile(~api99, dclus1, quantile = 0.5)$api99[1],
   after = svyquantile(~api99, dclus1g3, quantile = 0.5)$api99[1])
 ```
 
+
 Check `api99_med` variable if it sums up to 0.5
+
 
 ```{r}
 c(before = svytotal(~api99_med, dclus1), after = svytotal(~api99_med, dclus1g3))
 ```
+
 
 Note that in small sample sizes quantiles may not be reproduced excatly due to rounding
 
@@ -101,6 +118,7 @@ Note that in small sample sizes quantiles may not be reproduced excatly due to r
 # Calibraion for quantiles in Python using `pandas` and `samplics`
 
 Under `samplics-0.4.8`
+
 
 ```{bash, eval = FALSE} 
 pip install samplics
@@ -141,14 +159,18 @@ apiclus1.loc[apiclus1['api99'] == Q_U, 'api99_med'] = Q_B/N
 apiclus1[["api99", "api99_med"]].head()
 ```
 
+
 Declare population totals
+
 
 ```{python}
 pop_totals = {"pop": 6194, "stypeH" : 755, "stypeM" : 1018, "api99": 3914069, "api99_med": 0.5}
 pop_totals
 ```
 
+
 Calibration using `samplics` (linear function)
+
 
 ```{python}
 apiclus1["w_cal"] = SampleWeight().calibrate(
@@ -156,7 +178,9 @@ apiclus1["w_cal"] = SampleWeight().calibrate(
     pop_totals)
 ```
 
+
 Weighted quantiles are not implemented so we use `DescrStatsW` from `statsmodels.stats.weightstats`.
+
 
 ```{python}
 wq1 = DescrStatsW(data=apiclus1["api99"], weights=apiclus1["pw"])
@@ -166,7 +190,9 @@ wq2 = DescrStatsW(data=apiclus1["api99"], weights=apiclus1["w_cal"])
  "After": wq2.quantile(probs=0.5, return_pandas=False)[0]}
 ```
 
+
 Check `api99_med` variable if it sums up to 0.5
+
 
 ```{python}
 wq1 = DescrStatsW(data=apiclus1["api99_med"], weights=apiclus1["pw"])
@@ -175,7 +201,9 @@ wq2 = DescrStatsW(data=apiclus1["api99_med"], weights=apiclus1["w_cal"])
 {"Before": wq1.sum, "After": wq2.sum}
 ```
 
+
 # Calibraion for quantiles in Stata using `svyset` (`regress`)
+
 
 ```{stata, cleanlog=FALSE, echo=FALSE, collectcode=TRUE}
 import delimited using "apiclus1-example.csv", clear
@@ -201,5 +229,4 @@ replace stypeM = 1 if stype == "H"
 svyset dnum [pweight=pw], regress(stypeH stypeM api99 api99_med, totals(_cons=$N stypeH=755 stypeM=1018 api99=3914069 api99_med=0.50))
 svy: total api99_med
 ```
-
 
