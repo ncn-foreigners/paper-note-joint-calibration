@@ -141,6 +141,9 @@ for (r in 1:n_reps) {
                     method = "raking")
   
   ## el with means only
+  A_diff0 <- w_res2_d$Xs[,c("x1", "x2", "x3", "x4")] - 
+    do.call("rbind", replicate(nrow(w_res2_d$Xs), w_res2_d$totals[c(c("x1", "x2", "x3", "x4"))]/N, simplify = F))
+  w_res_el0 <- cal.weight.EL(g = A_diff0)
   
   ## quantiles only
   A_diff1 <- w_res_d$Xs[,-1] - do.call("rbind", replicate(nrow(w_res_d$Xs), w_res_d$totals[-1]/N, simplify = F))
@@ -150,17 +153,18 @@ for (r in 1:n_reps) {
   A_diff2 <- w_res2_d$Xs[,-1] - do.call("rbind", replicate(nrow(w_res2_d$Xs), w_res2_d$totals[-1]/N, simplify = F))
   w_res_el2 <- cal.weight.EL(g = A_diff2)
   
-  ## 
+  ## means only
   
   ## weights
   sample_resp[, ":="(wcal0=w_naive*w_res_st, qcal1=w_naive*w_res, qcal2=w_naive*w_res2, wipw=ipw$weights, 
-                     wel1=w_res_el1*N, wel2=w_res_el2*N)]
+                     wel0=w_res_el0*N, wel1=w_res_el1*N, wel2=w_res_el2*N)]
   ## means
   results_mean_n <- sample_resp[, lapply(.SD, mean), .SDcols = patterns("y")][, w:="naive"][, stat:="mean"]
   results_mean_wcal0 <- sample_resp[, lapply(.SD, weighted.mean, w = wcal0), .SDcols = patterns("y")][, w:="wcal0"][, stat:="mean"]
   results_mean_qcal1 <- sample_resp[, lapply(.SD, weighted.mean, w = qcal1), .SDcols = patterns("y")][, w:="qcal1"][, stat:="mean"]
   results_mean_qcal2 <- sample_resp[, lapply(.SD, weighted.mean, w = qcal2), .SDcols = patterns("y")][, w:="qcal2"][, stat:="mean"]
   results_mean_ipw <- sample_resp[, lapply(.SD, weighted.mean, w = wipw), .SDcols = patterns("y")][, w:="wipw"][, stat:="mean"]
+  results_mean_el0 <- sample_resp[, lapply(.SD, weighted.mean, w = wel0), .SDcols = patterns("y")][, w:="wel0"][, stat:="mean"]
   results_mean_el1 <- sample_resp[, lapply(.SD, weighted.mean, w = wel1), .SDcols = patterns("y")][, w:="wel1"][, stat:="mean"]
   results_mean_el2 <- sample_resp[, lapply(.SD, weighted.mean, w = wel2), .SDcols = patterns("y")][, w:="wel2"][, stat:="mean"]
   ## q25
@@ -169,6 +173,7 @@ for (r in 1:n_reps) {
   results_q25_qcal1 <- sample_resp[, lapply(.SD, weightedQuantile, probs=0.25, w = qcal1), .SDcols = patterns("y")][, w:="qcal1"][, stat:="q25"]
   results_q25_qcal2 <- sample_resp[, lapply(.SD, weightedQuantile, probs=0.25, w = qcal2), .SDcols = patterns("y")][, w:="qcal2"][, stat:="q25"]
   results_q25_ipw <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.25, w = wipw), .SDcols = patterns("y")][, w:="wipw"][, stat:="q25"]
+  results_q25_el0 <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.25, w = wel0), .SDcols = patterns("y")][, w:="wel0"][, stat:="q25"]
   results_q25_el1 <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.25, w = wel1), .SDcols = patterns("y")][, w:="wel1"][, stat:="q25"]
   results_q25_el2 <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.25, w = wel2), .SDcols = patterns("y")][, w:="wel2"][, stat:="q25"]
 
@@ -178,6 +183,7 @@ for (r in 1:n_reps) {
   results_q50_qcal1 <- sample_resp[, lapply(.SD, weightedQuantile, probs=0.5, w = qcal1), .SDcols = patterns("y")][, w:="qcal1"][, stat:="q50"]
   results_q50_qcal2 <- sample_resp[, lapply(.SD, weightedQuantile, probs=0.5, w = qcal2), .SDcols = patterns("y")][, w:="qcal2"][, stat:="q50"]
   results_q50_ipw <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.5, w = wipw), .SDcols = patterns("y")][, w:="wipw"][, stat:="q50"]
+  results_q50_el0 <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.5, w = wel0), .SDcols = patterns("y")][, w:="wel0"][, stat:="q50"]
   results_q50_el1 <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.5, w = wel1), .SDcols = patterns("y")][, w:="wel1"][, stat:="q50"]
   results_q50_el2 <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.5, w = wel2), .SDcols = patterns("y")][, w:="wel2"][, stat:="q50"]
   ## q75
@@ -186,13 +192,18 @@ for (r in 1:n_reps) {
   results_q75_qcal1 <- sample_resp[, lapply(.SD, weightedQuantile, probs=0.75, w = qcal1), .SDcols = patterns("y")][, w:="qcal1"][, stat:="q75"]
   results_q75_qcal2 <- sample_resp[, lapply(.SD, weightedQuantile, probs=0.75, w = qcal2), .SDcols = patterns("y")][, w:="qcal2"][, stat:="q75"]
   results_q75_ipw <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.75, w = wipw), .SDcols = patterns("y")][, w:="wipw"][, stat:="q75"]
+  results_q75_el0 <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.75, w = wel0), .SDcols = patterns("y")][, w:="wel0"][, stat:="q75"]
   results_q75_el1 <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.75, w = wel1), .SDcols = patterns("y")][, w:="wel1"][, stat:="q75"]
   results_q75_el2 <-  sample_resp[, lapply(.SD, weightedQuantile, probs=0.75, w = wel2), .SDcols = patterns("y")][, w:="wel2"][, stat:="q75"]
   
-  results[[r]] <- rbind(results_mean_n, results_mean_wcal0, results_mean_qcal1, results_mean_qcal2, results_mean_ipw, results_mean_el1, results_mean_el2,
-                        results_q25_n, results_q25_wcal0, results_q25_qcal1, results_q25_qcal2, results_q25_ipw,results_q25_el1,results_q25_el2,
-                        results_q50_n, results_q50_wcal0, results_q50_qcal1, results_q50_qcal2, results_q50_ipw,results_q50_el1,results_q50_el2,
-                        results_q75_n, results_q75_wcal0, results_q75_qcal1, results_q75_qcal2, results_q75_ipw,results_q75_el1,results_q75_el2)
+  results[[r]] <- rbind(results_mean_n, results_mean_wcal0, results_mean_qcal1, results_mean_qcal2, results_mean_ipw, 
+                        results_mean_el0, results_mean_el1, results_mean_el2,
+                        results_q25_n, results_q25_wcal0, results_q25_qcal1, results_q25_qcal2, results_q25_ipw,
+                        results_q25_el0,results_q25_el1,results_q25_el2,
+                        results_q50_n, results_q50_wcal0, results_q50_qcal1, results_q50_qcal2, results_q50_ipw,
+                        results_q50_el0, results_q50_el1,results_q50_el2,
+                        results_q75_n, results_q75_wcal0, results_q75_qcal1, results_q75_qcal2, results_q75_ipw,
+                        results_q75_el0,results_q75_el1,results_q75_el2)
 }
 
 
@@ -202,8 +213,8 @@ results_df <- rbindlist(results, idcol = "r") |>
 
 results_df[pop_true_vals, on = c("y", "stat"), true:=i.true]
 results_df[, w:=factor(w, 
-                       c("naive", "wipw", "wcal0", "qcal1", "qcal2", "wel1","wel2"), 
-                       c("Naive", "IPW", "CAL", "QCAL1", "QCAL2", "QEL1","QEL2"))]
+                       c("naive", "wipw", "wcal0", "qcal1", "qcal2", "wel0", "wel1","wel2"), 
+                       c("Naive", "IPW", "CAL", "QCAL1", "QCAL2", "EL", "QEL1","QEL2"))]
 
 saveRDS(results_df, file = "results/sim-chen2020-jasa-modif.rds")
 fwrite(x = results_df, file = "results/sim-chen2020-jasa-modif.csv.gz")
