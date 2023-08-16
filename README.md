@@ -20,10 +20,11 @@ library(nonprobsvy)
 
 ## Notebooks
 
-1.  [Main simulation from the paper]() based on Chen, Y., Li, P., and
-    Wu, C. (2020). *Doubly robust inference with nonprobability survey
-    samples*. Journal of the American Statistical Association,
-    115(532):2011–2021
+1.  [Main simulation from the
+    paper](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ncn-foreigners/paper-note-joint-calibration/main/notebooks/sim-chen2020-jasa-modif-results.html)
+    based on Chen, Y., Li, P., and Wu, C. (2020). *Doubly robust
+    inference with nonprobability survey samples*. Journal of the
+    American Statistical Association, 115(532):2011–2021
 2.  [Tutorial for the `jointCalib`
     package](https://github.com/ncn-foreigners/jointCalib)
 3.  [A minimal example of joint calibration in R, Python and
