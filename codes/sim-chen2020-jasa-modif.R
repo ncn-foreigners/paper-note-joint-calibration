@@ -22,7 +22,7 @@ z2 <- runif(N,0,2)
 z3 <- rexp(N,1)
 z4 <- rchisq(N, 4)
 x1 <- z1
-x2 <- z2 + 0.3*z1
+x2 <- z2 + 0.3*x1
 x3 <- z3 + 0.2*(x1 + x2)
 x4 <- z4 + 0.1*(x1 + x2 + x3)
 e <- rnorm(N)
@@ -45,7 +45,8 @@ pop_data <- data.frame(x1,x2,x3,x4,y1,y2,y3,p_r) |> setDT()
 # known population quantities ---------------------------------------------
 
 x_totals <- with(pop_data, c("(Intercept)"=N, "x1"=sum(x1), "x2"=sum(x2), "x3"=sum(x3), "x4"=sum(x4)))
-p_quantiles <- seq(0.25, 0.75, 0.25) ## for estimation
+#p_quantiles <- seq(0.25, 0.75, 0.25) ## for estimation
+p_quantiles <- c(seq(0.25, 0.75, 0.25), seq(0.1, 0.9, 0.1))
 #p_quantiles <- seq(0.1, 0.9, 0.1) 
 #p_quantiles <- p_quantiles_est ## for calibration
 x2_q <- with(pop_data, quantile(x2, p_quantiles))
