@@ -92,7 +92,7 @@ for (r in 1:n_reps) {
                        pop_quantiles = x_quants,
                        method = "raking",
                        backend = "sampling", 
-                       control = list(interpolation = "linear") # linear
+                       control = control_calib(interpolation = "linear") # linear
                        )$g
   
   
@@ -106,7 +106,7 @@ for (r in 1:n_reps) {
                         pop_totals = x_totals[-1],
                         method = "raking",
                         backend = "sampling",
-                        control = list(interpolation = "linear") # linear
+                        control = control_calib(interpolation = "linear") # linear
                         )$g
   
   ## calibration with totals only
