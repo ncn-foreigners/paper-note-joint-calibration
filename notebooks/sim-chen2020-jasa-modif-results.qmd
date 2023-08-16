@@ -100,10 +100,10 @@ results_sim_estimated
 ```
 
 ```{r}
-results_sim_estimated |> 
+results_sim_estimated# |> 
   #subset(select = -(characteristic)) |> 
-  xtable(digits=2) |> 
-  print.xtable(include.rownames = F)
+  #xtable(digits=2) |> 
+  #print.xtable(include.rownames = F)
 ```
 
 
