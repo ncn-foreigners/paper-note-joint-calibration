@@ -35,9 +35,10 @@ library(nonprobsvy)
 - `codes/` – code for simulation
 - `figs/` – figures that correspondst to table in the paper
 - `notebooks/` – notebooks with processing results
+- `paper/` – folder with the paper
 - `results/` – files with tables based on simulation
 
 ## Funding
 
-Work on this package is supported by the the National Science Center,
-OPUS 22 grant no. 2020/39/B/HS4/00941.
+Work on this paper is supported by the the National Science Center, OPUS
+22 grant no. 2020/39/B/HS4/00941.

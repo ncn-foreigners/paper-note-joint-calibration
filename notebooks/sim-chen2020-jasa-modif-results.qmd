@@ -53,10 +53,10 @@ results_sample[stat == "mean"][, y2:=factor(y, c("y1", "y2", "y3"), c("Y1", "Y2"
   facet_wrap(~y2, labeller = label_parsed)  + 
   geom_hline(data = pop_true_vals[stat == "mean", .(y2, stat, true)], 
              aes(yintercept = true), linetype = "dashed", color = "red") + 
-  labs(x = "Estimator", y = "Value") -> p1
+  labs(x = "Estimator", y = "Value") +
+  coord_flip() -> p1
 
 p1
-ggsave(plot = p1, filename = "../figs/sim-resp-mean.pdf", width = 8, height = 6)
 ggsave(plot = p1, filename = "../figs/sim-resp-mean.png", width = 8, height = 6)
 
 ```
@@ -70,10 +70,10 @@ results_sample[stat != "mean"][, y2:=factor(y, c("y1", "y2", "y3"), c("Y1", "Y2"
   facet_grid(stat ~ y2, scales = "free_y")  + 
     geom_hline(data = pop_true_vals[stat != "mean", .(y2, stat, true)], 
              aes(yintercept = true), linetype = "dashed", color = "red") + 
-  labs(x = "Estimator", y = "Value") -> p2
+  labs(x = "Estimator", y = "Value") + 
+  coord_flip() -> p2
 
 p2
-ggsave(plot = p2, filename = "../figs/sim-resp-quantiles.pdf", width = 8, height = 6)
 ggsave(plot = p2, filename = "../figs/sim-resp-quantiles.png", width = 8, height = 6)
 
 ```

@@ -3,36 +3,11 @@ library(sampling)
 library(laeken)
 library(survey)
 library(data.table)
-library(ggplot2)
-library(scales)
 library(nonprobsvy)
-library(xtable)
 
-seed_for_sim <- 2023-07-14
+seed_for_sim <- 2023-08-19
 set.seed(seed_for_sim+1)
 n_reps <- 1000
-
-## function taken from the publication Zhang, S., Han, P., & Wu, C. (2022). Calibration Techniques Encompassing Survey Sampling, Missing Data Analysis and Causal Inference. International Statistical Review.
-cal.weight.EL <- function(g) {
-  Fn <- function(rho, ghat) {
-    -sum(log(1 + ghat %*% rho))
-  }
-  Grd <- function(rho, ghat) {
-    -colSums(ghat / c(1 + ghat %*% rho))
-  }
-  rho.hat <-
-    constrOptim(
-      theta = rep(0, NCOL(g)),
-      f = Fn,
-      grad = Grd,
-      ui = g,
-      ci = rep(1 / NROW(g) - 1, NROW(g)),
-      ghat = g
-    )$par
-  weight <- c(1 / (1 + g %*% rho.hat) / NROW(g))
-  weight <- weight / sum(weight)
-  return(weight)
-}
 
 # generate data according to the paper ------------------------------------
 
@@ -91,7 +66,7 @@ pop_true_vals <- pop_data[, lapply(.SD,
 results <- list()
 
 for (r in 1:n_reps) {
-  set.seed(r)
+  set.seed(seed_for_sim+1+r)
   if (r %% 50 == 0) cat("Iteration: ", r, "\n")
   
   ## nonprob sample
@@ -106,7 +81,7 @@ for (r in 1:n_reps) {
                  control_selection = controlSel(est_method_sel = "gee", h_x = "2"))
   
   ## calibration with quantiles only
-  w_res_d <- joint_calib(formula_quantiles = ~ x2 + x3 + x4,
+  w_res <- joint_calib(formula_quantiles = ~ x2 + x3 + x4,
                          data = sample_resp,
                          dweights = sample_resp$w_naive,
                          N = N,
@@ -114,13 +89,11 @@ for (r in 1:n_reps) {
                          method = "raking",
                          backend = "sampling",
                          control = control_calib(interpolation = "linear") # linear
-  )
-  
-  w_res <- w_res_d$g
+  )$g
   
   
   ## calibration with quantiles and totals
-  w_res2_d <- joint_calib(formula_quantiles = ~ x2 + x3 + x4,
+  w_res2 <- joint_calib(formula_quantiles = ~ x2 + x3 + x4,
                           formula_totals = ~ x1 + x2 + x3 + x4,
                           data = sample_resp,
                           dweights = sample_resp$w_naive,
@@ -130,9 +103,7 @@ for (r in 1:n_reps) {
                           method = "raking",
                           backend = "sampling",
                           control = control_calib(interpolation = "linear") # linear
-  )
-  
-  w_res2 <- w_res2_d$g
+  )$g
   
   ## calibration with totals only
   w_res_st <- calib(Xs = with(sample_resp, cbind(1, x1, x2, x3, x4)), 
@@ -140,24 +111,37 @@ for (r in 1:n_reps) {
                     total = x_totals, 
                     method = "raking")
   
+  
   ## el with means only
-  A_diff0 <- w_res2_d$Xs[,c("x1", "x2", "x3", "x4")] - 
-    do.call("rbind", replicate(nrow(w_res2_d$Xs), w_res2_d$totals[c(c("x1", "x2", "x3", "x4"))]/N, simplify = F))
-  w_res_el0 <- cal.weight.EL(g = A_diff0)
+  w_res_el0 <- jointCalib::calib_el(X = model.matrix(~ x1 + x2 + x3 + x4, sample_resp),
+                                    d = sample_resp$w_naive,
+                                    total = x_totals)
   
   ## quantiles only
-  A_diff1 <- w_res_d$Xs[,-1] - do.call("rbind", replicate(nrow(w_res_d$Xs), w_res_d$totals[-1]/N, simplify = F))
-  w_res_el1 <- cal.weight.EL(g = A_diff1)
+  w_res_el1 <- joint_calib(formula_quantiles = ~ x2 + x3 + x4,
+                                      data = sample_resp,
+                                      dweights = sample_resp$w_naive,
+                                      N = N,
+                                      pop_quantiles = x_quants,
+                                      method = "el",
+                                      control = control_calib(interpolation = "linear") 
+  )$g
   
   ## quantiles and means
-  A_diff2 <- w_res2_d$Xs[,-1] - do.call("rbind", replicate(nrow(w_res2_d$Xs), w_res2_d$totals[-1]/N, simplify = F))
-  w_res_el2 <- cal.weight.EL(g = A_diff2)
-  
-  ## means only
+  w_res_el2 <- joint_calib(formula_quantiles = ~ x2 + x3 + x4,
+                           formula_totals = ~ x1 + x2 + x3 + x4,
+                           data = sample_resp,
+                           dweights = sample_resp$w_naive,
+                           N = N,
+                           pop_quantiles = x_quants,
+                           pop_totals = x_totals[-1],
+                           method = "el",
+                           control = control_calib(interpolation = "linear") # linear
+  )$g
   
   ## weights
   sample_resp[, ":="(wcal0=w_naive*w_res_st, qcal1=w_naive*w_res, qcal2=w_naive*w_res2, wipw=ipw$weights, 
-                     wel0=w_res_el0*N, wel1=w_res_el1*N, wel2=w_res_el2*N)]
+                     wel0=w_res_el0, wel1=w_res_el1, wel2=w_res_el2)]
   ## means
   results_mean_n <- sample_resp[, lapply(.SD, mean), .SDcols = patterns("y")][, w:="naive"][, stat:="mean"]
   results_mean_wcal0 <- sample_resp[, lapply(.SD, weighted.mean, w = wcal0), .SDcols = patterns("y")][, w:="wcal0"][, stat:="mean"]
