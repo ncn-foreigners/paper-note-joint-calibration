@@ -1,6 +1,9 @@
 
 # Repo for the paper “A note on joint calibration estimators for totals and quantiles”
 
+The working paper is available
+[here](paper/beresewicz-szymkowiak-jointcalib.pdf).
+
 ## Preliminaries
 
 Install `jointCalib` package
